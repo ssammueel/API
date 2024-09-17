@@ -1,45 +1,59 @@
 import userModel from "../models/userModel.js"
 import bcrypt from "bcryptjs"
 
-export const register = async(req, res) =>{
+export const register = async(req, res) => {
     try {
-        const userDetails = req.body
+        const userDetails = req.body;
 
-        const users = await userModel.findOne({email:userDetails.email}) //find will return a promise 
+        const existingUser = await userModel.findOne({email: userDetails.email});
     
-        if(!users)
-            {
+        if (!existingUser) {
+            if (userDetails.password === userDetails.confirm) {
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(userDetails.password, salt);
+                userDetails.password = hashedPassword;                
+                const newUser = await userModel.create(userDetails);
+                console.log(newUser);
+                return res.status(201).send({message: "User created successfully"});
 
-                if(userDetails.password == userDetails.confirm){
-                    
-                    const salt = await bcrypt.genSalt(10)
-                    const hpass = await bcrypt.hash(userDetails.password, salt)
-                    userDetails.password = hpass;
-                    const user = await userModel.create(userDetails)
-                    console.log(user)
-                    res.send({message:"the user is created sucessfully"})
+            } else {
+                return res.status(400).send({message: "Passwords do not match"});
 
-
-                }
-                return res.send({message:"the passwords dont match"})
             }
-    
+        } else {
+            return res.status(400).send({message: "Email already in use"});
+        }
+
     } catch (error) {
-        
+        console.log(error);
+        res.status(500).send({message: "Server error"});
+    }
+}
+
+export const logIn = async(req, res) => {
+    
+    try {
+        const {password, email} = req.body
+
+        if (!email & !password)
+        {
+            return res.send({message:"the filds are a must"})
+        }
+
+
+        const user = await userModel.findOne({email})
+        if(!user)
+        {
+            return res.send({message:"there is no user with that email"})
+        }
+        const match = await bcrypt.compare(password,user.password)
+
+        if(match)
+        {
+            res.send({message:"log in was sucessfull"})
+        }
+            
+    } catch (error) {
         console.log(error)
     }
 }
-
-
-export const logIn = (req,res) =>{
-    const {name, email} = req.body
-
-    if (!name & !email){
-        return res.send({message :"this are a must felds"})
-    }
-
-    console.log("this is the log in portal")
-    res.send({message:"log in response"})
-
-}
-
