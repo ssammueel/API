@@ -1,6 +1,37 @@
-export const logIn = (req,res) =>{
-    // remember here we are getting data from the body ie the user will provide his name and his email adress 
+import userModel from "../models/userModel.js"
+import bcrypt from "bcryptjs"
 
+export const register = async(req, res) =>{
+    try {
+        const userDetails = req.body
+
+        const users = await userModel.findOne({email:userDetails.email}) //find will return a promise 
+    
+        if(!users)
+            {
+
+                if(userDetails.password == userDetails.confirm){
+                    
+                    const salt = await bcrypt.genSalt(10)
+                    const hpass = await bcrypt.hash(userDetails.password, salt)
+                    userDetails.password = hpass;
+                    const user = await userModel.create(userDetails)
+                    console.log(user)
+                    res.send({message:"the user is created sucessfully"})
+
+
+                }
+                return res.send({message:"the passwords dont match"})
+            }
+    
+    } catch (error) {
+        
+        console.log(error)
+    }
+}
+
+
+export const logIn = (req,res) =>{
     const {name, email} = req.body
 
     if (!name & !email){
@@ -8,24 +39,7 @@ export const logIn = (req,res) =>{
     }
 
     console.log("this is the log in portal")
-    res.send({message:"log in response", name:name, email:email})
+    res.send({message:"log in response"})
 
 }
 
-export const register = (req, res) =>{
-
-    // since the user is to give much date there is no need to destructure 
-    const {name, email, phoneNummer} = req.body
-
-    try {
-
-        if(!name & !email){
-            res.send({message:"the name and the email area a must field"})
-        }
-        
-
-        
-    } catch (error) {
-        
-    }
-}
