@@ -8,7 +8,7 @@ export const logIn = (req,res) =>{
     }
 
     console.log("this is the log in portal")
-    res.send("log in response")
+    res.send({message:"log in response", name:name, email:email})
 
 }
 
