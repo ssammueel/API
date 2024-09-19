@@ -6,6 +6,7 @@ import { router } from "./Routes/auth.routes.js";
  config()
 
  const PORT = process.env.PORT || 5000
+ const SECRET_KEY = process.env.SECRET_KEY
 
  const app = express();
  app.use(express.json())
@@ -16,3 +17,5 @@ import { router } from "./Routes/auth.routes.js";
     console.log(`the server is up and running ${PORT}`)
     connectDb()
  })
+
+ export default SECRET_KEY

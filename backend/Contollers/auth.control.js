@@ -1,12 +1,14 @@
 import userModel from "../models/userModel.js"
 import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
 
 export const register = async(req, res) => {
     try {
         const userDetails = req.body;
 
+        //check if the user we want to register is oready in the database
         const existingUser = await userModel.findOne({email: userDetails.email});
-    
+        //if the user isnt in the database then we have to make a way to register him in the database
         if (!existingUser) {
             if (userDetails.password === userDetails.confirm) {
                 const salt = await bcrypt.genSalt(10);
@@ -42,17 +44,26 @@ export const logIn = async(req, res) => {
 
 
         const user = await userModel.findOne({email})
-        if(!user)
-        {
-            return res.send({message:"there is no user with that email"})
-        }
-        const match = await bcrypt.compare(password,user.password)
 
-        if(match)
+        if(user)
         {
-            res.send({message:"log in was sucessfull"})
+            const compare = await bcrypt.compare(password, user.password)
+            if(compare)
+            {
+               
+                const token = await jwt.sign({email:user.email}, "SAM",{expiresIn:'1h'})
+                return res.send({message:"log in sucessful" ,token:token})
+
+            }
+            else{
+                return res.send({message:"wrong password"})
+            }
+        }else{
+            return res.send({message:"wrong email"})
         }
-            
+
+        
+        
     } catch (error) {
         console.log(error)
     }
